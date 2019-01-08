@@ -173,7 +173,11 @@ class SpiderAgent():
                 if spider_service_instance.cancel_spider(project.project_name, job_execution.service_job_execution_id):
                     job_execution.end_time = datetime.datetime.now()
                     job_execution.running_status = SpiderStatus.CANCELED
-                    db.session.commit()
+                    try:
+                        db.session.commit()
+                    except:
+                        db.session.rollback()
+                        raise
                 break
 
     def deploy(self, project, file_path):

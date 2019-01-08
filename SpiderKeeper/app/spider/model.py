@@ -13,8 +13,12 @@ class Project(Base):
         for project in project_list:
             existed_project = cls.query.filter_by(project_name=project.project_name).first()
             if not existed_project:
-                db.session.add(project)
-                db.session.commit()
+                try:
+                    db.session.add(project)
+                    db.session.commit()
+                except:
+                    db.session.rollback()
+                    raise
 
     @classmethod
     def find_project_by_id(cls, project_id):
@@ -39,8 +43,12 @@ class SpiderInstance(Base):
             existed_spider_instance = cls.query.filter_by(project_id=project_id,
                                                           spider_name=spider_instance.spider_name).first()
             if not existed_spider_instance:
-                db.session.add(spider_instance)
-                db.session.commit()
+                try:
+                    db.session.add(spider_instance)
+                    db.session.commit()
+                except:
+                    db.session.rollback()
+                    raise
 
         for spider in cls.query.filter_by(project_id=project_id).all():
             existed_spider = any(
@@ -48,8 +56,12 @@ class SpiderInstance(Base):
                 for s in spider_instance_list
             )
             if not existed_spider:
-                db.session.delete(spider)
-                db.session.commit()
+                try:
+                    db.session.delete(spider)
+                    db.session.commit()
+                except:
+                    db.session.rollback()
+                    raise
 
     @classmethod
     def list_spider_by_project_id(cls, project_id):

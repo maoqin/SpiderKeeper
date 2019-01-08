@@ -43,8 +43,12 @@ class ProjectCtrl(flask_restful.Resource):
         project_name = request.form['project_name']
         project = Project()
         project.project_name = project_name
-        db.session.add(project)
-        db.session.commit()
+        try:
+            db.session.add(project)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
         return project.to_dict()
 
 
@@ -135,8 +139,12 @@ class SpiderDetailCtrl(flask_restful.Resource):
         job_instance.run_type = JobRunType.ONETIME
         job_instance.priority = request.form.get('priority', 0)
         job_instance.enabled = -1
-        db.session.add(job_instance)
-        db.session.commit()
+        try:
+            db.session.add(job_instance)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise        
         agent.start_spider(job_instance)
         return True
 
@@ -254,8 +262,12 @@ class JobCtrl(flask_restful.Resource):
                 job_instance.cron_day_of_month = post_data.get('cron_day_of_month') or '*'
                 job_instance.cron_day_of_week = post_data.get('cron_day_of_week') or '*'
                 job_instance.cron_month = post_data.get('cron_month') or '*'
-            db.session.add(job_instance)
-            db.session.commit()
+            try:
+                db.session.add(job_instance)
+                db.session.commit()
+            except:
+                db.session.rollback()
+                raise
             return True
 
 
@@ -371,7 +383,11 @@ class JobDetailCtrl(flask_restful.Resource):
             job_instance.cron_month = post_data.get('cron_month') or job_instance.cron_month
             job_instance.desc = post_data.get('desc', 0) or job_instance.desc
             job_instance.tags = post_data.get('tags', 0) or job_instance.tags
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
+                raise            
             if post_data.get('status') == 'run':
                 agent.start_spider(job_instance)
             return True
@@ -510,8 +526,12 @@ def project_create():
     project_name = request.form['project_name']
     project = Project()
     project.project_name = project_name
-    db.session.add(project)
-    db.session.commit()
+    try:
+        db.session.add(project)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise    
     return redirect("/project/%s/spider/deploy" % project.id, code=302)
 
 
@@ -519,8 +539,12 @@ def project_create():
 def project_delete(project_id):
     project = Project.find_project_by_id(project_id)
     agent.delete_project(project)
-    db.session.delete(project)
-    db.session.commit()
+    try:
+        db.session.delete(project)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
     return redirect("/project/manage", code=302)
 
 
@@ -561,8 +585,12 @@ def job_add(project_id):
         job_instance.spider_arguments = ','.join(spider_args)
     if job_instance.run_type == JobRunType.ONETIME:
         job_instance.enabled = -1
-        db.session.add(job_instance)
-        db.session.commit()
+        try:
+            db.session.add(job_instance)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
         agent.start_spider(job_instance)
     if job_instance.run_type == JobRunType.PERIODIC:
         job_instance.cron_minutes = request.form.get('cron_minutes') or '0'
@@ -574,8 +602,12 @@ def job_add(project_id):
         if request.form.get('cron_exp'):
             job_instance.cron_minutes, job_instance.cron_hour, job_instance.cron_day_of_month, job_instance.cron_day_of_week, job_instance.cron_month = \
                 request.form['cron_exp'].split(' ')
-        db.session.add(job_instance)
-        db.session.commit()
+        try:
+            db.session.add(job_instance)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
     return redirect(request.referrer, code=302)
 
 
@@ -605,8 +637,12 @@ def job_run(project_id, job_instance_id):
 @app.route("/project/<project_id>/job/<job_instance_id>/remove")
 def job_remove(project_id, job_instance_id):
     job_instance = JobInstance.query.filter_by(project_id=project_id, id=job_instance_id).first()
-    db.session.delete(job_instance)
-    db.session.commit()
+    try:
+        db.session.delete(job_instance)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
     return redirect(request.referrer, code=302)
 
 
@@ -614,7 +650,11 @@ def job_remove(project_id, job_instance_id):
 def job_switch(project_id, job_instance_id):
     job_instance = JobInstance.query.filter_by(project_id=project_id, id=job_instance_id).first()
     job_instance.enabled = -1 if job_instance.enabled == 0 else 0
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
     return redirect(request.referrer, code=302)
 
 
