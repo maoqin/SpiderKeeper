@@ -133,13 +133,14 @@ class SpiderAgent():
         if job_instance.spider_arguments:
             for k, v in list(map(lambda x: x.split('=', 1), job_instance.spider_arguments.split(','))):
                 arguments[k].append(v)
-        threshold = 0
-        daemon_size = len(self.spider_service_instances)
-        if job_instance.priority == JobPriority.HIGH:
-            threshold = int(daemon_size / 2)
-        if job_instance.priority == JobPriority.HIGHEST:
-            threshold = int(daemon_size)
-        threshold = 1 if threshold == 0 else threshold
+        # threshold = 0
+        # daemon_size = len(self.spider_service_instances)
+        # if job_instance.priority == JobPriority.HIGH:
+        #     threshold = int(daemon_size / 2)
+        # if job_instance.priority == JobPriority.HIGHEST:
+        #     threshold = int(daemon_size)
+        # threshold = 1 if threshold == 0 else threshold
+        threshold = 1
         candidates = self.spider_service_instances
         leaders = []
         if 'daemon' in arguments:
